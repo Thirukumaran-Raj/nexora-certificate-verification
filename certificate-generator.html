@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Nexora Technologies | Certificate Generator</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<style>
+*{box-sizing:border-box}body{margin:0;font-family:Inter,Segoe UI,Arial,sans-serif;background:#eef2f7;color:#17233c}
+header{background:#142b4a;color:#fff;padding:18px 5%;display:flex;justify-content:space-between;align-items:center}
+.brand{font-weight:800;letter-spacing:1px}.brand small{display:block;font-weight:400;letter-spacing:2px;opacity:.75}
+.wrap{max-width:1200px;margin:28px auto;padding:0 18px;display:grid;grid-template-columns:360px 1fr;gap:24px}
+.panel{background:#fff;border-radius:16px;padding:22px;box-shadow:0 10px 30px #142b4a14}
+h1{margin:0 0 6px;font-size:25px}h2{font-size:17px;margin:0 0 18px}.muted{color:#6b7280;font-size:13px}
+label{display:block;font-size:12px;font-weight:700;margin:13px 0 6px;color:#34445d}
+input,select{width:100%;padding:11px 12px;border:1px solid #d7deea;border-radius:9px;font-size:14px;background:#fff}
+button{border:0;border-radius:9px;padding:12px 15px;font-weight:700;cursor:pointer}
+.primary{background:#d5a43a;color:#142b4a;width:100%;margin-top:18px}.secondary{background:#e9eef5;color:#142b4a;width:100%;margin-top:9px}
+#cert{background:#fff;aspect-ratio:1.414/1;border:10px double #17365d;position:relative;padding:7%;text-align:center;box-shadow:0 10px 30px #142b4a20;overflow:hidden}
+#cert:before{content:"";position:absolute;inset:16px;border:1px solid #d5a43a;pointer-events:none}
+.cert-org{font-weight:800;letter-spacing:1px;font-size:18px;color:#17365d}.cert-title{font-size:25px;font-weight:800;color:#c4932d;margin:10px}.present{font-size:11px;color:#6b7280;margin-top:16px}.name{font-family:Georgia,serif;font-size:31px;font-weight:700;color:#17365d;margin:10px 0;border-bottom:1px solid #c4932d;display:inline-block;min-width:52%}.cert-body{font-size:11px;line-height:1.7;color:#4b5563}.role{font-size:18px;font-weight:800;color:#17365d;margin:3px}.meta{display:flex;justify-content:space-between;position:absolute;left:10%;right:10%;bottom:8%;font-size:9px;color:#555}.sig{border-top:1px solid #17365d;width:120px;padding-top:4px}.qr{position:absolute;right:8%;bottom:7%;width:82px;height:82px;background:#fff;padding:4px}.cert-id{position:absolute;left:8%;bottom:7%;font-size:9px;color:#555}
+.actions{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:16px}.actions button{width:100%}
+@media(max-width:850px){.wrap{grid-template-columns:1fr}#cert{min-height:520px}.meta{bottom:5%}}
+@media print{body{background:#fff}.no-print{display:none!important}.wrap{display:block;margin:0;padding:0}.preview-panel{box-shadow:none;padding:0}.preview-panel h2{display:none}#cert{box-shadow:none;width:100vw;height:70.7vw;max-height:100vh;margin:0;border-radius:0}}
+</style>
+</head>
+<body>
+<header><div class="brand">NEXORA TECHNOLOGIES<small>CERTIFICATE GENERATOR</small></div><div class="muted" style="color:#dce7f5">Free • GitHub Pages</div></header>
+<div class="wrap">
+<section class="panel no-print">
+<h1>Create Certificate</h1><p class="muted">Generate a professional certificate with a unique ID and QR verification link.</p>
+<label>Recipient Name</label><input id="name" value="Sample Intern">
+<label>Certificate Type</label><select id="type"><option>Certificate of Internship</option><option>Certificate of Course Completion</option><option>Certificate of Training</option><option>Certificate of Participation</option><option>Certificate of Achievement</option></select>
+<label>Role / Program</label><select id="program"><option>Full Stack Development</option><option>Python Development</option><option>PL/SQL Development</option><option>UI & UX Design</option><option>Web Development</option><option>Custom</option></select>
+<label>Custom Role (if selected)</label><input id="custom" placeholder="Enter custom role">
+<label>Start Date</label><input id="start" type="date">
+<label>End Date</label><input id="end" type="date">
+<label>Issue Date</label><input id="issue" type="date">
+<label>Certificate ID</label><input id="cid" value="NEX-2026-00001">
+<label>Authorized Signatory</label><input id="signatory" value="Authorized Signatory">
+<button class="primary" onclick="generate()">Generate / Update</button>
+<button class="secondary" onclick="window.print()">Print / Save as PDF</button>
+<div class="actions"><button class="secondary" onclick="downloadJSON()">Download JSON</button><button class="secondary" onclick="downloadHTML()">Download HTML</button></div>
+<p class="muted" style="margin-top:15px">Important: the generator cannot directly change your public GitHub database from a browser without exposing a GitHub access token. Use the downloaded JSON with your repository uploader.</p>
+</section>
+<section class="panel preview-panel"><h2>Certificate Preview</h2><div id="cert">
+<div class="cert-org">NEXORA TECHNOLOGIES</div><div class="cert-title" id="vtype">CERTIFICATE OF INTERNSHIP</div>
+<div class="present">This certificate is proudly presented to</div><div class="name" id="vname">Sample Intern</div>
+<div class="cert-body">for successfully completing an internship in</div><div class="role" id="vprogram">Full Stack Development</div>
+<div class="cert-body">at Nexora Technologies, demonstrating commitment, technical learning, and professional excellence.</div>
+<div class="qr" id="qrcode"></div><div class="cert-id" id="vid">Certificate ID: NEX-2026-00001</div>
+<div class="meta"><div><div class="sig" id="vsig">Authorized Signatory</div></div><div>Issue Date<br><b id="vdate">14 Aug 2026</b></div><div>Duration<br><b id="vduration">—</b></div></div>
+</div></section>
+</div>
+<script>
+const $=id=>document.getElementById(id);
+const base=location.href.replace(/\/[^\/]*$/,'/');
+function fmt(v){if(!v)return '—';const d=new Date(v+'T00:00:00');return d.toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'});}
+function role(){return $('program').value==='Custom'?($('custom').value||'Professional Development'):$('program').value;}
+function duration(){if(!$('start').value||!$('end').value)return '—';return fmt($('start').value)+' – '+fmt($('end').value);}
+function generate(){
+ $('vname').textContent=$('name').value||'Recipient Name';
+ $('vtype').textContent=$('type').value.toUpperCase();
+ $('vprogram').textContent=role();
+ $('vid').textContent='Certificate ID: '+($('cid').value||'NEX-2026-00001');
+ $('vdate').textContent=fmt($('issue').value);
+ $('vduration').textContent=duration();
+ $('vsig').textContent=$('signatory').value||'Authorized Signatory';
+ $('qrcode').innerHTML='';
+ const id=encodeURIComponent(($('cid').value||'').trim());
+ const verify=base+'verify.html?id='+id;
+ new QRCode($('qrcode'),{text:verify,width:74,height:74,colorDark:'#142b4a',colorLight:'#ffffff'});
+}
+function data(){
+ return {id:$('cid').value.trim().toUpperCase(),name:$('name').value.trim(),type:$('type').value,program:role(),startDate:$('start').value,endDate:$('end').value,issueDate:$('issue').value||new Date().toISOString().slice(0,10),duration:duration(),status:'VALID'};
+}
+function downloadJSON(){
+ const blob=new Blob([JSON.stringify([data()],null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='certificates.json';a.click();URL.revokeObjectURL(a.href);
+}
+function downloadHTML(){
+ const html='<!doctype html><html><head><meta charset="utf-8"><title>Nexora Certificate '+data().id+'</title><style>body{margin:0;background:#fff}#cert{margin:4%;padding:7%;border:10px double #17365d;aspect-ratio:1.414/1;text-align:center;position:relative;font-family:Arial}.name{font-size:30px;font-weight:700;color:#17365d;margin:20px;border-bottom:1px solid #c4932d}.role{font-size:18px;font-weight:700}.qr{position:absolute;right:8%;bottom:8%}</style></head><body>'+$('cert').outerHTML+'</body></html>';
+ const blob=new Blob([html],{type:'text/html'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=data().id+'.html';a.click();URL.revokeObjectURL(a.href);
+}
+(function(){const now=new Date();const iso=now.toISOString().slice(0,10);$('issue').value=iso;generate()})();
+</script>
+</body></html>
